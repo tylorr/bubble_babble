@@ -12,7 +12,7 @@ var consonant_map = consonants.split('').reduce(map_index, {});
 
 var tuple_re = new RegExp('([' + vowels + '][' + consonants + '][' + vowels + '][' + consonants + ']-[' + consonants + '])', 'g');
 
-var encrypt = function(input, encoding) {
+var encode = function(input, encoding) {
 
   if (!Buffer.isBuffer(input)) {
     input = new Buffer(input, encoding);
@@ -66,7 +66,7 @@ var even_partial = function(checksum) {
   return vowels.charAt(a) + consonants.charAt(b) + vowels.charAt(c);
 };
 
-var decrypt = function(input) {
+var decode = function(input) {
   var tuples = input.match(tuple_re),
       len = tuples ? tuples.length : 0,
       char_codes = new Buffer(len * 2),
@@ -108,18 +108,10 @@ var next_checksum = function(checksum, byte1, byte2) {
 }
 
 var mod = function(n, m) {
-  return ((m % n) + n) % n;
+  return ((n % m) + n) % n;
 }
 
-var input = 'xesef-disof-gytuf-katof-movif-baxux';
-
-var decrypted = decrypt(input);
-
-if (decrypted) {
-  console.log(decrypted.toString());
-} else {
-  console.log('Corrupted bubble babble');
-}
-
-console.log(encrypt(new Buffer('1234567890')));
-console.log(encrypt('Pineapple', 'utf8'));
+module.exports = {
+  encode: encode,
+  decode: decode
+};
