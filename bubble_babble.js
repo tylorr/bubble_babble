@@ -14,53 +14,56 @@ var tuple_re = new RegExp('([' + vowels + '][' + consonants + '][' + vowels + ']
 
 var encrypt = function(input, encoding) {
 
-  if (typeof input === 'string') {
-
-    // encoding defaults to 'utf8' if left undefined
+  if (!Buffer.isBuffer(input)) {
     input = new Buffer(input, encoding);
   }
 
   var result = 'x',
       seed = 1,
-      reached_end = false,
       len = input.length,
-      i = 0,
       byte1, byte2,
-      a, b, c, d, e;
+      d, e, i;
 
-  while (!reached_end) {
-    if (i >= len) {
-      a = Math.floor(seed % 6);
-      b = 16 ;
-      c = Math.floor(seed / 6);
-      reached_end = true;
-    } else {
-      byte1 = input.readInt8(i);
-      a = (((byte1 >> 6) & 3) + seed) % 6;
-      b = (byte1 >> 2) & 15;
-      c = ((byte1 & 3) + Math.floor(seed / 6)) % 6;
-    }
+  // create full tuples
+  for (i = 0; i + 1 < len; i += 2) {
+    byte1 = input.readInt8(i);
+    result += odd_partial(byte1, seed);
 
-    if (i + 1 >= len) {
-      reached_end = true;
-    } else {
-      byte2 = input.readInt8(i + 1);
-      d = (byte2 >> 4) & 15;
-      e = byte2 & 15;
-    }
+    byte2 = input.readInt8(i + 1);
+    d = (byte2 >> 4) & 15;
+    e = byte2 & 15;
+
+    result += consonants.charAt(d) + '-' + consonants.charAt(e);
+
     seed = ((seed * 5) + (byte1 * 7) + byte2) % 36;
+  }
 
-    result += vowels.charAt(a) + consonants.charAt(b) + vowels.charAt(c);
-
-    if (!reached_end) {
-      result += consonants.charAt(d) + '-' + consonants.charAt(e);
-    }
-
-    i += 2;
+  // handle partial tuple
+  if (i < len) {
+    byte1 = input.readInt8(i);
+    result += odd_partial(byte1, seed);
+  } else {
+    result += even_partial(seed);
   }
 
   result += 'x';
   return result;
+};
+
+var odd_partial = function(raw_byte, seed) {
+  var a = (((raw_byte >> 6) & 3) + seed) % 6,
+      b = (raw_byte >> 2) & 15,
+      c = ((raw_byte & 3) + Math.floor(seed / 6)) % 6;
+
+  return vowels.charAt(a) + consonants.charAt(b) + vowels.charAt(c);
+}
+
+var even_partial = function(seed) {
+  var a = Math.floor(seed % 6),
+      b = 16,
+      c = Math.floor(seed / 6);
+
+  return vowels.charAt(a) + consonants.charAt(b) + vowels.charAt(c);
 };
 
 var decrypt = function(input) {
@@ -100,9 +103,15 @@ var decrypt = function(input) {
   return char_codes;
 };
 
-var input = 'xesef-disof-gytuf-katof-movif-baxux';
+var input = 'xesuf-disof-gytuf-katof-movif-baxux';
 
-console.log(decrypt(input).toString());
+var decrypted = decrypt(input);
+
+if (decrypted) {
+  console.log(decrypted.toString());
+} else {
+  console.log('Corrupted bubble babble');
+}
 
 console.log(encrypt(new Buffer('1234567890')));
-console.log(encrypt('1234567890', 'utf8'));
+console.log(encrypt('Pineapple', 'utf8'));
