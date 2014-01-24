@@ -39,13 +39,18 @@ describe('BubbleBabble', function() {
     });
 
     it('should return a string that starts and begins with "x"', function() {
-      var encoding, i;
+      var encoded, i;
 
       for (var i = 0; i < 10; ++i) {
-        encoding = bubble.encode(random_str());
-        encoding.should.startWith('x');
-        encoding.should.endWith('x');
+        encoded = bubble.encode(random_str());
+        encoded.should.startWith('x');
+        encoded.should.endWith('x');
       }
+    });
+
+    it('should be the inverse of decoding', function() {
+      var encoding = 'xesef-disof-gytuf-katof-movif-baxux';
+      bubble.encode(bubble.decode(encoding)).should.equal(encoding);
     });
   });
 
@@ -58,5 +63,22 @@ describe('BubbleBabble', function() {
         decoded.toString().should.equal(test.ascii);
       });
     });
+
+    it('should throw exception on corrupt input', function() {
+      (function() {
+        bubble.decode('xesyf-disof-gytuf-katof-movif-baxux');
+      }).should.throw;
+
+      (function() {
+        bubble.decode('xesef-disof-gytuf-katof-movif-baxu');
+      }).should.throw;
+    });
+
+    it('should be inverse of encoding', function() {
+      var ascii_input = 'Inverse of each other.';
+
+      bubble.decode(bubble.encode(ascii_input)).toString().should.equal(ascii_input);
+    });
   });
+
 });
