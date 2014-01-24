@@ -55,8 +55,7 @@ describe('BubbleBabble', function() {
         var decoded = bubble.decode(test.encoding);
         Buffer.isBuffer(decoded).should.be.true;
 
-        console.log(decoded.toString('ascii'));
-        // decoded.toString().should.equal(test.ascii);
+        decoded.toString().should.equal(test.ascii);
       });
     });
   });

@@ -1,16 +1,5 @@
-
-var map_index = function(memo, letter, index) {
-  memo[letter] = index;
-  return memo;
-};
-
 var vowels = 'aeiouy';
-var vowel_map = vowels.split('').reduce(map_index, {});
-
 var consonants = 'bcdfghklmnprstvzx';
-var consonant_map = consonants.split('').reduce(map_index, {});
-
-var tuple_re = new RegExp('([' + vowels + '][' + consonants + '][' + vowels + '][' + consonants + ']-[' + consonants + '])', 'g');
 
 var encode = function(input, encoding) {
   if (!Buffer.isBuffer(input)) {
@@ -66,41 +55,71 @@ var even_partial = function(checksum) {
 };
 
 var decode = function(input) {
-  var tuples = input.match(tuple_re),
-      len = tuples ? tuples.length : 0,
-      char_codes = new Buffer(len * 2),
-      checksum = 1,
-      byte1, byte2,
-      a_bits, b_bits,
-      c_bits, d_bits,
-      e_bits, i,
-      tuple;
-
-  for (i = 0; i < len; ++i) {
-    tuple = tuples[i];
-
-    a_bits = (vowel_map[tuple.charAt(0)] - (checksum % 6) + 6) % 6;
-    b_bits = consonant_map[tuple.charAt(1)];
-    c_bits = (vowel_map[tuple.charAt(2)] - (Math.floor(checksum / 6) % 6) + 6) % 6;
-
-    if (a_bits >= 4 ||
-        c_bits >= 4) {
-      return null;
-    }
-
-    d_bits = consonant_map[tuple.charAt(3)];
-    e_bits = consonant_map[tuple.charAt(5)];
-
-    byte1 = (a_bits << 6) | (b_bits << 2) | c_bits;
-    byte2 = (d_bits << 4) | e_bits;
-
-    checksum = next_checksum(checksum, byte1, byte2);
-    char_codes[i * 2] = byte1;
-    char_codes[(i * 2) + 1] = byte2;
+  if (input.substr(0, 1) !== 'x' ||
+      input.substr(-1, 1) !== 'x') {
+    throw new Error('Corrupt string');
   }
 
-  return char_codes;
+  var ascii_tuples = input.substring(1, input.length - 1).match(/.{3,6}/g),
+      len = ascii_tuples ? ascii_tuples.length : 0,
+      char_codes = [],
+      checksum = 1,
+      byte1, byte2, i,
+      tuple;
+
+  // handle full tuples
+  for (i = 0; i < len - 1; ++i) {
+    tuple = decode_tuple(ascii_tuples[i]);
+
+    byte1 = decode_3part_byte(tuple[0], tuple[1], tuple[2], checksum);
+    byte2 = decode_2part_byte(tuple[3], tuple[4]);
+
+    checksum = next_checksum(checksum, byte1, byte2);
+
+    char_codes.push(byte1);
+    char_codes.push(byte2);
+  }
+
+  // handle partial tuple
+  tuple = decode_tuple(ascii_tuples[len - 1]);
+  if (tuple[1] === 16) {
+    if (tuple[0] !== checksum % 6 ||
+        tuple[2] !== Math.floor(checksum / 6)) {
+      throw new Error('Corrupt string');
+    }
+  } else {
+    byte1 = decode_3part_byte(tuple[0], tuple[1], tuple[2], checksum);
+    char_codes.push(byte1);
+  }
+
+  return new Buffer(char_codes);
 };
+
+var decode_tuple = function(ascii_tuple) {
+  return [
+    vowels.indexOf(ascii_tuple[0]),
+    consonants.indexOf(ascii_tuple[1]),
+    vowels.indexOf(ascii_tuple[2]),
+    consonants.indexOf(ascii_tuple[3]),
+    consonants.indexOf(ascii_tuple[5]),
+  ];
+};
+
+var decode_3part_byte = function(a, b, c, checksum) {
+  var high = (a - (checksum % 6) + 6) % 6,
+      mid = b,
+      low = (c - (Math.floor(checksum / 6) % 6) + 6) % 6;
+
+  if (high >= 4 || low >= 4) {
+    throw new Error('Corrupt string');
+  }
+
+  return (high << 6) | (mid << 2) | low;
+};
+
+var decode_2part_byte = function(d, e) {
+  return (d << 4) | e;
+}
 
 var next_checksum = function(checksum, byte1, byte2) {
   return ((checksum * 5) + (byte1 * 7) + byte2) % 36;
