@@ -13,7 +13,6 @@ var consonant_map = consonants.split('').reduce(map_index, {});
 var tuple_re = new RegExp('([' + vowels + '][' + consonants + '][' + vowels + '][' + consonants + ']-[' + consonants + '])', 'g');
 
 var encode = function(input, encoding) {
-
   if (!Buffer.isBuffer(input)) {
     input = new Buffer(input, encoding);
   }
@@ -80,20 +79,20 @@ var decode = function(input) {
   for (i = 0; i < len; ++i) {
     tuple = tuples[i];
 
-    a_bits = (Math.max(vowel_map[tuple.charAt(0)] - checksum, 0) & 3) << 6;
-    b_bits = ((consonant_map[tuple.charAt(1)] & 15)) << 2;
-    c_bits = Math.max(vowel_map[tuple.charAt(2)] - Math.floor(checksum / 6), 0) & 3;
+    a_bits = (vowel_map[tuple.charAt(0)] - (checksum % 6) + 6) % 6;
+    b_bits = consonant_map[tuple.charAt(1)];
+    c_bits = (vowel_map[tuple.charAt(2)] - (Math.floor(checksum / 6) % 6) + 6) % 6;
 
-    if (mod(a_bits - checksum, 6) >= 4 ||
-        mod(c_bits - checksum, 6) >= 4) {
+    if (a_bits >= 4 ||
+        c_bits >= 4) {
       return null;
     }
 
-    d_bits = (consonant_map[tuple.charAt(3)] & 15) << 4;
-    e_bits = consonant_map[tuple.charAt(5)] & 15;
+    d_bits = consonant_map[tuple.charAt(3)];
+    e_bits = consonant_map[tuple.charAt(5)];
 
-    byte1 = a_bits | b_bits | c_bits;
-    byte2 = d_bits | e_bits;
+    byte1 = (a_bits << 6) | (b_bits << 2) | c_bits;
+    byte2 = (d_bits << 4) | e_bits;
 
     checksum = next_checksum(checksum, byte1, byte2);
     char_codes[i * 2] = byte1;
@@ -105,10 +104,6 @@ var decode = function(input) {
 
 var next_checksum = function(checksum, byte1, byte2) {
   return ((checksum * 5) + (byte1 * 7) + byte2) % 36;
-}
-
-var mod = function(n, m) {
-  return ((n % m) + n) % n;
 }
 
 module.exports = {
