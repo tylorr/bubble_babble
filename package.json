@@ -1,0 +1,29 @@
+{
+  "name": "bubble_babble",
+  "version": "0.1.0",
+  "description": "Bubble Babble encoding",
+  "main": "bubble_babble.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/miningold/bubble_babble.git"
+  },
+  "keywords": [
+    "bubble",
+    "babble",
+    "encode",
+    "encrypt",
+    "ssh"
+  ],
+  "author": "Tylor Reynolds",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/miningold/bubble_babble/issues"
+  },
+  "homepage": "https://github.com/miningold/bubble_babble",
+  "devDependencies": {
+    "should": "~3.1.0"
+  }
+}
