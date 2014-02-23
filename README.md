@@ -18,5 +18,5 @@ var encoded = bubble.encode('Pineapple');
 console.log(encoded); // 'xigak-nyryk-humil-bosek-sonax'
 
 var ascii = bubble.decode('xesef-disof-gytuf-katof-movif-baxux');
-console.log(decoded); // '1234567890'
+console.log(ascii); // '1234567890'
 ```
