@@ -122,7 +122,6 @@ var decode_2part_byte = function(d, e) {
 }
 
 var next_checksum = function(checksum, byte1, byte2) {
-
   return ((checksum * 5) + (byte1 * 7) + byte2) % 36;
 }
 
