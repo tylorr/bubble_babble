@@ -74,11 +74,17 @@ describe('BubbleBabble', function() {
       }).should.throw;
     });
 
-    it('should be inverse of encoding', function() {
+    it('should be inverse of encoding a string', function() {
       var ascii_input = 'Inverse of each other.';
 
       bubble.decode(bubble.encode(ascii_input)).toString().should.equal(ascii_input);
     });
+
+    it('should be inverse of encoding a buffer', function() {
+      var input = Buffer.from('ffffffff','hex');
+
+      bubble.decode(bubble.encode(input)).equals(input).should.be.true;
+    });      
   });
 
 });
