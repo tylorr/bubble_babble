@@ -1,6 +1,6 @@
 {
   "name": "bubble_babble",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Bubble Babble encoding",
   "main": "bubble_babble.js",
   "scripts": {
