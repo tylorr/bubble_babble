@@ -14,10 +14,10 @@ var encode = function(input, encoding) {
 
   // create full tuples
   for (i = 0; i + 1 < len; i += 2) {
-    byte1 = input.readInt8(i);
+    byte1 = input.readUInt8(i);
     result += odd_partial(byte1, checksum);
 
-    byte2 = input.readInt8(i + 1);
+    byte2 = input.readUInt8(i + 1);
     d = (byte2 >> 4) & 15;
     e = byte2 & 15;
 
@@ -28,7 +28,7 @@ var encode = function(input, encoding) {
 
   // handle partial tuple
   if (i < len) {
-    byte1 = input.readInt8(i);
+    byte1 = input.readUInt8(i);
     result += odd_partial(byte1, checksum);
   } else {
     result += even_partial(checksum);
